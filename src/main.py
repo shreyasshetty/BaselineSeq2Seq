@@ -9,6 +9,7 @@ import time
 
 from BaseDataset import BaseDataset
 from model import BaselineSeq2Seq
+from model import evaluate_model
 from vocabulary import build_vocabulary
 
 flags = tf.app.flags
@@ -26,6 +27,8 @@ flags.DEFINE_string("data_dir", "../data", "Path to the dataset directory")
 flags.DEFINE_string("save_dir", "../experiment/", "Save the results in the following path")
 flags.DEFINE_integer("num_epochs", 5, "number of epochs to run the experiment")
 flags.DEFINE_integer("print_every", 100, "print the training loss every so many steps")
+flags.DEFINE_integer("valid_every", 1000, "validate the model every so many steps")
+flags.DEFINE_integer("test_every", 1000, "test the model every so many steps")
 
 FLAGS = flags.FLAGS
 
@@ -39,11 +42,11 @@ def main(_):
     tr_infoboxes = os.path.join(FLAGS.data_dir, 'train', 'train.box')
     tr_sentences = os.path.join(FLAGS.data_dir, 'train', 'train_in.sent')
 
-    #te_infoboxes = os.path.join(FLAGS.data_dir, 'test', 'test.box')
-    #te_sentences = os.path.join(FLAGS.data_dir, 'test', 'test_in.sent')
+    te_infoboxes = os.path.join(FLAGS.data_dir, 'test', 'test.box')
+    te_sentences = os.path.join(FLAGS.data_dir, 'test', 'test_in.sent')
 
-    #va_infoboxes = os.path.join(FLAGS.data_dir, 'valid', 'valid.box')
-    #va_sentences = os.path.join(FLAGS.data_dir, 'valid', 'valid_in.sent')
+    va_infoboxes = os.path.join(FLAGS.data_dir, 'valid', 'valid.box')
+    va_sentences = os.path.join(FLAGS.data_dir, 'valid', 'valid_in.sent')
 
     # Checkpoint directory
     checkpoint_dir = os.path.join(FLAGS.save_dir, 'checkpoints')
@@ -75,6 +78,30 @@ def main(_):
     duration = time.time() - start
     print("Built train dataset in %.5f s" %(duration))
 
+    print("Building the test dataset object")
+    start = time.time()
+    test_dataset = BaseDataset(te_infoboxes,
+                               te_sentences,
+                               FLAGS.tokens_per_field,
+                               max_source_len,
+                               sum_seq_len,
+                               word_to_id,
+                               batch_size)
+    duration = time.time() - start
+    print("Built test dataset in %.5f s" %(duration))
+
+    print("Building the valid dataset object")
+    start = time.time()
+    valid_dataset = BaseDataset(va_infoboxes,
+                                va_sentences,
+                                FLAGS.tokens_per_field,
+                                max_source_len,
+                                sum_seq_len,
+                                word_to_id,
+                                batch_size)
+    duration = time.time() - start
+    print("Built valid dataset in %.5f s" %(duration))
+
     with tf.device(':/gpu:2'):
         with tf.Graph().as_default():
             tf.set_random_seed(1234)
@@ -94,8 +121,10 @@ def main(_):
             dec_weights = tf.placeholder(tf.float32,
                                          shape=(batch_size, sum_seq_len),
                                          name="decoder_weights")
+            feed_previous = tf.placeholder(tf.bool)
 
-            logits_op = model.inference(enc_inputs, dec_inputs, feed_previous=False)
+            logits_op = model.inference(enc_inputs, dec_inputs,
+                                        feed_previous)
             loss_op = model.loss(logits_op, dec_inputs, dec_weights)
             train_op = model.training(loss_op)
 
@@ -114,10 +143,10 @@ def main(_):
                 start_e = time.time()
                 for step in range(train_dataset.num_batches):
                     benc_ins, bdec_ins, bdec_wts = train_dataset.next_batch()
-                    feed_dict = { enc_inputs : benc_ins,
-                                  dec_inputs : bdec_ins,
-                                  dec_weights : bdec_wts
-                                }
+                    feed_dict = {enc_inputs : benc_ins,
+                                 dec_inputs : bdec_ins,
+                                 dec_weights : bdec_wts,
+                                 feed_previous : True}
                     _, loss_val = sess.run([train_op, loss_op],
                                            feed_dict=feed_dict)
                     perplexity = np.exp(float(loss_val)) if loss_val < 300 else float('inf')
@@ -132,6 +161,35 @@ def main(_):
                                                                                      step,
                                                                                      loss_val,
                                                                                      perplexity))
+
+                    if step % FLAGS.valid_every == 0:
+                        v_loss, v_perp = evaluate_model(sess,
+                                                        valid_dataset,
+                                                        loss_op)
+                        with open(os.path.join(FLAGS.save_dir, 'valid.log'), 'a') as log_f:
+                            log_f.write('valid : epoch %d batch %d : loss = %0.3f perplexity = %0.3f\n' %(train_dataset.epochs_done + 1,
+                                                                                                          step,
+                                                                                                          v_loss,
+                                                                                                          v_perp))
+                        print('valid : epoch %d batch %d : loss = %0.3f perplexity = %0.3f\n' %(train_dataset.epochs_done + 1,
+                                                                                                step,
+                                                                                                v_loss,
+                                                                                                v_perp))
+
+                    if step % FLAGS.test_every == 0:
+                        t_loss, t_perp = evaluate_model(sess,
+                                                        test_dataset,
+                                                        loss_op)
+                        with open(os.path.join(FLAGS.save_dir, 'test.log'), 'a') as log_f:
+                            log_f.write('test : epoch %d batch %d : loss = %0.3f perplexity = %0.3f\n' %(train_dataset.epochs_done + 1,
+                                                                                                         step,
+                                                                                                         t_loss,
+                                                                                                         t_perp))
+                        print('test : epoch %d batch %d : loss = %0.3f perplexity = %0.3f\n' %(train_dataset.epochs_done + 1,
+                                                                                                step,
+                                                                                                t_loss,
+                                                                                                t_perp))
+
                 duration_e = time.time() - start_e
 		with open(os.path.join(FLAGS.save_dir, 'time_taken.txt'), 'a') as time_f:
 		    time_f.write('Epoch : %d\tTime taken : %0.5f\n' %(train_dataset.epochs_done, duration_e))

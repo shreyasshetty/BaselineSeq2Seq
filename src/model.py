@@ -24,7 +24,7 @@ class BaselineSeq2Seq(object):
         self.optimizer = optimizer
         self.cell = tf.nn.rnn_cell.GRUCell(rnn_size)
 
-    def inference(self, encoder_inputs, decoder_inputs, feed_previous):
+    def inference_s2s(self, encoder_inputs, decoder_inputs, feed_previous):
         vocab_size = self.vocab_size
         embedding_size = self.embedding_size
         cell = self.cell
@@ -39,6 +39,23 @@ class BaselineSeq2Seq(object):
                                                 vocab_size,
                                                 embedding_size,
                                                 feed_previous=feed_previous)
+        return outputs[:-1]
+
+    def inference_s2s_att(self, encoder_inputs, decoder_inputs, feed_previous):
+        vocab_size = self.vocab_size
+        embedding_size = self.embedding_size
+        cell = self.cell
+        embedding_tied_rnn_seq2seq = tf.nn.seq2seq.embedding_attention_seq2seq
+
+        encoder_inputs = tf.unpack(encoder_inputs, axis=1)
+        decoder_inputs = tf.unpack(decoder_inputs, axis=1)
+
+        outputs, _ = embedding_attention_seq2seq(encoder_inputs,
+                                                 decoder_inputs,
+                                                 cell,
+                                                 vocab_size,
+                                                 embedding_size,
+                                                 feed_previous=feed_previous)
         return outputs[:-1]
 
     def loss(self, logits, decoder_inputs, target_weights):
@@ -88,3 +105,20 @@ class BaselineSeq2Seq(object):
         logits = tf.reshape(logits, [-1, self.vocab_size])
         predictions = tf.nn.softmax(logits)
         return tf.reshape(predictions, logit_shape)
+
+
+def evaluate_model(sess, dataset, loss_op):
+    num_batches = dataset.num_batches
+    batch_loss = 0.0
+    for i in xrange(num_batches):
+        benc_ins, bdec_ins, bdec_wts = train_dataset.next_batch()
+        feed_dict = { enc_inputs : benc_ins,
+                      dec_inputs : bdec_ins,
+                      dec_weights : bdec_wts,
+                      feed_previous : False
+                    }
+        batch_loss += sess.run([loss_op], feed_dict=feed_dict)
+    dataset.reset_batch()
+    loss = batch_loss / num_batches
+    perplexity = np.exp(float(loss)) if loss < 300 else float('inf')
+    return perplexity
