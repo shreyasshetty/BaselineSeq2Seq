@@ -16,10 +16,10 @@ flags = tf.app.flags
 
 flags.DEFINE_integer("vocab_size", 10000, "Vocabulary size")
 flags.DEFINE_integer("embedding_size", 300, "Embedding size")
-flags.DEFINE_integer("tokens_per_field", 25, "max tokens per field in an infobox")
+flags.DEFINE_integer("tokens_per_field", 5, "max tokens per field in an infobox")
 flags.DEFINE_integer("rnn_size", 128, "Size of the RNN hidden layer")
 flags.DEFINE_integer("max_source_len", 50, "Size of the input infobox")
-flags.DEFINE_integer("sum_seq_length", 100, "Max length of generated summary")
+flags.DEFINE_integer("sum_seq_length", 30, "Max length of generated summary")
 flags.DEFINE_float("learning_rate", 4e-4, "learning rate")
 flags.DEFINE_string("optimizer", 'adam', "Optimizer to be used")
 flags.DEFINE_integer("batch_size", 64, "Batch size of mini-batches")

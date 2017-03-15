@@ -156,7 +156,7 @@ class BaseDataset(object):
         """ next_batch : Generate the next batch for the inference procedure.
         """
         batch_size = self.batch_size
-        start = self._permutation[self._index_in_epoch]
+        start = self._permutation[self._index_in_epoch] * batch_size
         end = start + batch_size
         self._index_in_epoch += 1
 
