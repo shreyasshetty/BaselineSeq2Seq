@@ -29,6 +29,7 @@ flags.DEFINE_integer("num_epochs", 5, "number of epochs to run the experiment")
 flags.DEFINE_integer("print_every", 100, "print the training loss every so many steps")
 flags.DEFINE_integer("valid_every", 1000, "validate the model every so many steps")
 flags.DEFINE_integer("test_every", 1000, "test the model every so many steps")
+flags.DEFINE_integer("save_every_epochs", 1, "save the model every so many epochs")
 
 FLAGS = flags.FLAGS
 
