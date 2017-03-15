@@ -199,8 +199,8 @@ def main(_):
                                                                                             t_perp))
 
             duration_e = time.time() - start_e
-    	with open(os.path.join(FLAGS.save_dir, 'time_taken.txt'), 'a') as time_f:
-    	    time_f.write('Epoch : %d\tTime taken : %0.5f\n' %(train_dataset.epochs_done, duration_e))
+            with open(os.path.join(FLAGS.save_dir, 'time_taken.txt'), 'a') as time_f:
+    	        time_f.write('Epoch : %d\tTime taken : %0.5f\n' %(train_dataset.epochs_done, duration_e))
 
             if train_dataset.epochs_done % FLAGS.save_every_epochs == 0:
                 modelfile = os.path.join(checkpoint_dir, str(train_dataset.epochs_done) + '.ckpt')
