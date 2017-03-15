@@ -117,7 +117,7 @@ def evaluate_model(sess, dataset, loss_op, enc_inputs,
         feed_dict = { enc_inputs : benc_ins,
                       dec_inputs : bdec_ins,
                       dec_weights : bdec_wts,
-                      feed_previous : False
+                      feed_previous : True
                     }
         batch_loss += sess.run(loss_op, feed_dict=feed_dict)
     dataset.reset_batch()
