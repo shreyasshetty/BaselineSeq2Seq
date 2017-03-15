@@ -14,7 +14,7 @@ from vocabulary import build_vocabulary
 
 flags = tf.app.flags
 
-flags.DEFINE_integer("vocab_size", 10000, "Vocabulary size")
+flags.DEFINE_integer("vocab_size", 20000, "Vocabulary size")
 flags.DEFINE_integer("embedding_size", 300, "Embedding size")
 flags.DEFINE_integer("tokens_per_field", 5, "max tokens per field in an infobox")
 flags.DEFINE_integer("rnn_size", 128, "Size of the RNN hidden layer")
