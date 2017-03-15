@@ -122,10 +122,10 @@ def main(_):
             dec_weights = tf.placeholder(tf.float32,
                                          shape=(batch_size, sum_seq_len),
                                          name="decoder_weights")
-            feed_previous = tf.placeholder(tf.bool)
+            feed_previous = tf.placeholder(tf.bool, name="feed_previous")
 
-            logits_op = model.inference(enc_inputs, dec_inputs,
-                                        feed_previous)
+            logits_op = model.inference_s2s_att(enc_inputs, dec_inputs,
+                                                feed_previous)
             loss_op = model.loss(logits_op, dec_inputs, dec_weights)
             train_op = model.training(loss_op)
 
@@ -166,7 +166,11 @@ def main(_):
                     if step % FLAGS.valid_every == 0:
                         v_loss, v_perp = evaluate_model(sess,
                                                         valid_dataset,
-                                                        loss_op)
+                                                        loss_op,
+                                                        enc_inputs,
+                                                        dec_inputs,
+                                                        dec_weights,
+                                                        feed_previous)
                         with open(os.path.join(FLAGS.save_dir, 'valid.log'), 'a') as log_f:
                             log_f.write('valid : epoch %d batch %d : loss = %0.3f perplexity = %0.3f\n' %(train_dataset.epochs_done + 1,
                                                                                                           step,
@@ -180,7 +184,11 @@ def main(_):
                     if step % FLAGS.test_every == 0:
                         t_loss, t_perp = evaluate_model(sess,
                                                         test_dataset,
-                                                        loss_op)
+                                                        loss_op,
+                                                        enc_inputs,
+                                                        dec_inputs,
+                                                        dec_weights,
+                                                        feed_previous)
                         with open(os.path.join(FLAGS.save_dir, 'test.log'), 'a') as log_f:
                             log_f.write('test : epoch %d batch %d : loss = %0.3f perplexity = %0.3f\n' %(train_dataset.epochs_done + 1,
                                                                                                          step,

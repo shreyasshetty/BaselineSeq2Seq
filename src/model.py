@@ -3,8 +3,9 @@
     for biography generation.
 """
 
-#import numpy as np
+import numpy as np
 import tensorflow as tf
+from seq2seq import share_embedding_attention_seq2seq
 
 
 class BaselineSeq2Seq(object):
@@ -45,17 +46,17 @@ class BaselineSeq2Seq(object):
         vocab_size = self.vocab_size
         embedding_size = self.embedding_size
         cell = self.cell
-        embedding_tied_rnn_seq2seq = tf.nn.seq2seq.embedding_attention_seq2seq
 
         encoder_inputs = tf.unpack(encoder_inputs, axis=1)
         decoder_inputs = tf.unpack(decoder_inputs, axis=1)
 
-        outputs, _ = embedding_attention_seq2seq(encoder_inputs,
-                                                 decoder_inputs,
-                                                 cell,
-                                                 vocab_size,
-                                                 embedding_size,
-                                                 feed_previous=feed_previous)
+        outputs, _ = share_embedding_attention_seq2seq(encoder_inputs,
+                                                       decoder_inputs,
+                                                       cell,
+                                                       vocab_size,
+                                                       vocab_size,
+                                                       embedding_size,
+                                                       feed_previous=feed_previous)
         return outputs[:-1]
 
     def loss(self, logits, decoder_inputs, target_weights):
@@ -107,18 +108,19 @@ class BaselineSeq2Seq(object):
         return tf.reshape(predictions, logit_shape)
 
 
-def evaluate_model(sess, dataset, loss_op):
+def evaluate_model(sess, dataset, loss_op, enc_inputs,
+                   dec_inputs, dec_weights, feed_previous):
     num_batches = dataset.num_batches
     batch_loss = 0.0
     for i in xrange(num_batches):
-        benc_ins, bdec_ins, bdec_wts = train_dataset.next_batch()
+        benc_ins, bdec_ins, bdec_wts = dataset.next_batch()
         feed_dict = { enc_inputs : benc_ins,
                       dec_inputs : bdec_ins,
                       dec_weights : bdec_wts,
                       feed_previous : False
                     }
-        batch_loss += sess.run([loss_op], feed_dict=feed_dict)
+        batch_loss += sess.run(loss_op, feed_dict=feed_dict)
     dataset.reset_batch()
     loss = batch_loss / num_batches
     perplexity = np.exp(float(loss)) if loss < 300 else float('inf')
-    return perplexity
+    return loss, perplexity
