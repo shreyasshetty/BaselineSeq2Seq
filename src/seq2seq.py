@@ -745,7 +745,7 @@ def embedding_attention_seq2seq(encoder_inputs, decoder_inputs, cell,
     #    embedding_size=embedding_size)
     embedding = variable_scope.get_variable('embedding', 
                                             [num_encoder_symbols, embedding_size],
-                                            trainable=embedding_trainable)
+                                            trainable=True)
     embedded_inputs = embedding_ops.embedding_lookup(embedding, encoder_inputs)
     embedded_inputs = array_ops.unpack(embedded_inputs)
 
