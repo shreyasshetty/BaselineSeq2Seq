@@ -5,7 +5,7 @@
 
 import numpy as np
 import tensorflow as tf
-from seq2seq import share_embedding_attention_seq2seq
+from seq2seq import embedding_attention_seq2seq
 
 
 class BaselineSeq2Seq(object):
@@ -50,13 +50,13 @@ class BaselineSeq2Seq(object):
         encoder_inputs = tf.unpack(encoder_inputs, axis=1)
         decoder_inputs = tf.unpack(decoder_inputs, axis=1)
 
-        outputs, _ = share_embedding_attention_seq2seq(encoder_inputs,
-                                                       decoder_inputs,
-                                                       cell,
-                                                       vocab_size,
-                                                       vocab_size,
-                                                       embedding_size,
-                                                       feed_previous=feed_previous)
+        outputs, _ = embedding_attention_seq2seq(encoder_inputs,
+                                                 decoder_inputs,
+                                                 cell,
+                                                 vocab_size,
+                                                 vocab_size,
+                                                 embedding_size,
+                                                 feed_previous=feed_previous)
         return outputs[:-1]
 
     def loss(self, logits, decoder_inputs, target_weights):
