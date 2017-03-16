@@ -769,7 +769,7 @@ def embedding_attention_seq2seq(encoder_inputs, decoder_inputs, cell,
           output_size=output_size, output_projection=output_projection,
           feed_previous=feed_previous,
           initial_state_attention=initial_state_attention,
-		  embedding_scope=scope)
+          embedding_scope=scope)
 
     # If feed_previous is a Tensor, we construct 2 graphs and use cond.
     def decoder(feed_previous_bool):
@@ -783,7 +783,7 @@ def embedding_attention_seq2seq(encoder_inputs, decoder_inputs, cell,
             feed_previous=feed_previous_bool,
             update_embedding_for_previous=False,
             initial_state_attention=initial_state_attention,
-			embedding_scope=scope)
+            embedding_scope=scope)
         state_list = [state]
         if nest.is_sequence(state):
           state_list = nest.flatten(state)
