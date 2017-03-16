@@ -743,11 +743,11 @@ def embedding_attention_seq2seq(encoder_inputs, decoder_inputs, cell,
     #encoder_cell = rnn_cell.EmbeddingWrapper(
     #    cell, embedding_classes=num_encoder_symbols,
     #    embedding_size=embedding_size)
-	embedding = variable_scope.get_variable('embedding', 
+    embedding = variable_scope.get_variable('embedding', 
                                             [num_encoder_symbols, embedding_size],
                                             trainable=embedding_trainable)
-	embedded_inputs = embedding_ops.embedding_lookup(embedding, encoder_inputs)
-	embedded_inputs = array_ops.unpack(embedded_inputs)
+    embedded_inputs = embedding_ops.embedding_lookup(embedding, encoder_inputs)
+    embedded_inputs = array_ops.unpack(embedded_inputs)
 
     encoder_outputs, encoder_state = rnn.rnn(
         cell, embedded_inputs, dtype=dtype)
