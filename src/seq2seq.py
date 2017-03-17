@@ -738,7 +738,7 @@ def embedding_attention_seq2seq(encoder_inputs, decoder_inputs, cell,
       state: The state of each decoder cell at the final time-step.
         It is a 2D Tensor of shape [batch_size x cell.state_size].
   """
-  with variable_scope.variable_scope(scope or "embedding_attention_seq2seq"):
+  with variable_scope.variable_scope(scope or "embedding_attention_seq2seq") as scope:
     # Encoder.
     #encoder_cell = rnn_cell.EmbeddingWrapper(
     #    cell, embedding_classes=num_encoder_symbols,
