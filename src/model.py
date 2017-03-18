@@ -23,14 +23,14 @@ class BaselineSeq2Seq(object):
         self.embedding_size = embedding_size
         self.learning_rate = learning_rate
         self.optimizer = optimizer
-		self.rnn_size = rnn_size
+        self.rnn_size = rnn_size
         self.cell = tf.nn.rnn_cell.GRUCell(rnn_size)
 
-	def output_projection(self):
-		vocab_size = self.vocab_size
-		rnn_size = self.rnn_size
-		self.projection_B = tf.get_variable(name="proj_b", shape=[vocab_size]) 
-		self.projection_W = tf.get_variable(name="proj_w", shape=[rnn_size, vocab_size])
+    def output_projection(self):
+        vocab_size = self.vocab_size
+        rnn_size = self.rnn_size
+        self.projection_B = tf.get_variable(name="proj_b", shape=[vocab_size]) 
+        self.projection_W = tf.get_variable(name="proj_w", shape=[rnn_size, vocab_size])
 
     def inference_s2s(self, encoder_inputs, decoder_inputs, feed_previous):
         vocab_size = self.vocab_size
@@ -40,7 +40,7 @@ class BaselineSeq2Seq(object):
 
         encoder_inputs = tf.unpack(encoder_inputs, axis=1)
         decoder_inputs = tf.unpack(decoder_inputs, axis=1)
-		output_projection=(self.projection_W, self.projection_B)
+        output_projection=(self.projection_W, self.projection_B)
 
         outputs, _ = embedding_tied_rnn_seq2seq(encoder_inputs,
                                                 decoder_inputs,
@@ -48,10 +48,10 @@ class BaselineSeq2Seq(object):
                                                 vocab_size,
                                                 embedding_size,
                                                 feed_previous=feed_previous,
-												output_projection=output_projection)
+                                                output_projection=output_projection)
         outputs = outputs[:-1]
-		fin_outputs = [tf.matmul(o, self.projection_W) + self.projection_B for o in outputs]
-		return fin_outputs
+        fin_outputs = [tf.matmul(o, self.projection_W) + self.projection_B for o in outputs]
+        return fin_outputs
 
     def inference_s2s_att(self, encoder_inputs, decoder_inputs, feed_previous):
         vocab_size = self.vocab_size
