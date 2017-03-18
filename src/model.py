@@ -29,8 +29,8 @@ class BaselineSeq2Seq(object):
 	def output_projection(self):
 		vocab_size = self.vocab_size
 		rnn_size = self.rnn_size
-		self.projection_W = tf.get_variable(name="proj_b", shape=[vocab_size]) 
-		self.projection_B = tf.get_variable(name="proj_w", shape=[rnn_size, vocab_size])
+		self.projection_B = tf.get_variable(name="proj_b", shape=[vocab_size]) 
+		self.projection_W = tf.get_variable(name="proj_w", shape=[rnn_size, vocab_size])
 
     def inference_s2s(self, encoder_inputs, decoder_inputs, feed_previous):
         vocab_size = self.vocab_size
