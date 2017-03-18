@@ -674,7 +674,7 @@ def embedding_attention_decoder(decoder_inputs, initial_state, attention_states,
     proj_biases.get_shape().assert_is_compatible_with([num_symbols])
 
   with variable_scope.variable_scope(
-    embedding_scope or "embedding_attention_decoder", dtype=dtype,  reuse = True) as embed_scope:
+    embedding_scope or "embedding_attention_decoder", reuse = True) as embed_scope:
     embedding = variable_scope.get_variable("embedding",
             [num_symbols, embedding_size])
     loop_function = _extract_argmax_and_embed(
