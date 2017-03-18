@@ -36,18 +36,14 @@ class BaselineSeq2Seq(object):
 
         encoder_inputs = tf.unpack(encoder_inputs, axis=1)
         decoder_inputs = tf.unpack(decoder_inputs, axis=1)
-        output_projection=(self.projection_W, self.projection_B)
 
         outputs, _ = embedding_tied_rnn_seq2seq(encoder_inputs,
                                                 decoder_inputs,
                                                 cell,
                                                 vocab_size,
                                                 embedding_size,
-                                                feed_previous=feed_previous,
-                                                output_projection=output_projection)
-        outputs = outputs[:-1]
-        fin_outputs = [tf.matmul(o, self.projection_W) + self.projection_B for o in outputs]
-        return fin_outputs
+                                                feed_previous=feed_previous)
+        return outputs[:-1]
 
     def inference_s2s_att(self, encoder_inputs, decoder_inputs, feed_previous):
         vocab_size = self.vocab_size
