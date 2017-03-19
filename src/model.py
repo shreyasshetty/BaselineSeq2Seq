@@ -60,7 +60,8 @@ class BaselineSeq2Seq(object):
                                                  vocab_size,
                                                  vocab_size,
                                                  embedding_size,
-                                                 feed_previous=feed_previous)
+                                                 feed_previous=feed_previous,
+												 output_projection=output_projection)
         outputs = outputs[:-1]
         fin_outputs = [tf.matmul(o, self.projection_W) + self.projection_B for o in outputs]
         return fin_outputs
