@@ -63,16 +63,17 @@ def build_vocabulary(info_path, sent_path, top_k, min_field_freq,
         wordcount.update(tokens)
 
     count_pairs = wordcount.most_common()
-    count_pairs = wordcount.most_common(top_k - 4)
+    count_pairs = wordcount.most_common(top_k - 5)
     words, _ = list(zip(*count_pairs))
 
     words = list(set(words) | set(flist))
-    word_to_id = dict(zip(words, range(4, len(words) + 4)))
+    word_to_id = dict(zip(words, range(5, len(words) + 5)))
 
     word_to_id['<PAD>'] = 0
     word_to_id['<EOS>'] = 1
     word_to_id['<OOV>'] = 2
     word_to_id['<GO>'] = 3
+	word_to_id['<COPY>'] = 4
 
     return word_to_id
 
@@ -162,7 +163,7 @@ def parse_input(box, sent, max_source_len, sum_seq_len, tokens_per_field,
     # decoder inputs
     len_vocab = len(word_to_id)
     swords = sent.split()
-    swords = ['<GO'] + swords
+    swords = ['<GO>'] + swords
     num_valid = len(swords)
     z = []
     dec_in = []

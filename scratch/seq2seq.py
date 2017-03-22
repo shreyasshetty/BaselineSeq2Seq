@@ -120,8 +120,10 @@ def _extract_argmax_and_embed_copy(embedding, vocab_size,
   """
   def loop_function(prev, _):
     prev_symbol = math_ops.argmax(prev, 1)
+	# In case of word being copied, use the copy 
+	# embedding
     if tf.greater_equal(prev_symbol, vocab_size)
-        prev_symbol = 2
+        prev_symbol = 4
     # Note that gradients will not propagate through the second parameter of
     # embedding_lookup.
     emb_prev = embedding_ops.embedding_lookup(embedding, prev_symbol)
@@ -639,11 +641,14 @@ def attention_decoder(decoder_inputs, initial_state, attention_states, cell,
       one_min_z_t = tf.ones(batch_size) - z_t
       with variable_scope.variable_scope("AttnOutputProjection"):
         output = linear([cell_output] + attns, output_size, True)
+		w_t = tf.mul(output, one_min_z_t)
+		l_t = tf.mul(attn_vec, z_t)
+		output_merged = tf.concat(1, [w_t, l_t])
         # apply softmax
 
       if loop_function is not None:
-        prev = output
-      outputs.append(output)
+        prev = output_merged
+      outputs.append(output_merged)
 
       # decoder runs for sum_len + 1 steps
       outputs = outputs[:-1]
