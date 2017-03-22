@@ -105,6 +105,32 @@ def _extract_argmax_and_embed(embedding, output_projection=None,
   return loop_function
 
 
+def _extract_argmax_and_embed_copy(embedding, vocab_size,
+                                   update_embedding=True):
+  """Get a loop_function that extracts the previous symbol and embeds it.
+
+  Args:
+    embedding: embedding tensor for symbols.
+    vocab_size : Number of symbols in the output vocabulary.
+    update_embedding: Boolean; if False, the gradients will not propagate
+      through the embeddings.
+
+  Returns:
+    A loop function.
+  """
+  def loop_function(prev, _):
+    prev_symbol = math_ops.argmax(prev, 1)
+    if tf.greater_equal(prev_symbol, vocab_size)
+        prev_symbol = 2
+    # Note that gradients will not propagate through the second parameter of
+    # embedding_lookup.
+    emb_prev = embedding_ops.embedding_lookup(embedding, prev_symbol)
+    if not update_embedding:
+      emb_prev = array_ops.stop_gradient(emb_prev)
+    return emb_prev
+  return loop_function
+
+
 def rnn_decoder(decoder_inputs, initial_state, cell, loop_function=None,
                 scope=None):
   """RNN decoder for the sequence-to-sequence model.
@@ -610,11 +636,17 @@ def attention_decoder(decoder_inputs, initial_state, attention_states, cell,
         attns, attn_vec = attention(state)
         z_t = tf.nn.sigmoid(linear([inp] + [cell_output] + attns, 1, True))
 
+      one_min_z_t = tf.ones(batch_size) - z_t
       with variable_scope.variable_scope("AttnOutputProjection"):
         output = linear([cell_output] + attns, output_size, True)
+        # apply softmax
+
       if loop_function is not None:
         prev = output
       outputs.append(output)
+
+      # decoder runs for sum_len + 1 steps
+      outputs = outputs[:-1]
       w_t = tf.nn.softmax(outputs)
       z.append(z_t)
       l_t.append(attn_vec)
@@ -684,8 +716,8 @@ def embedding_attention_decoder(decoder_inputs, initial_state, attention_states,
     embedding_scope or "embedding_attention_decoder", reuse = True) as embed_scope:
     embedding = variable_scope.get_variable("embedding",
             [num_symbols, embedding_size])
-    loop_function = _extract_argmax_and_embed(
-        embedding, output_projection,
+    loop_function = _extract_argmax_and_embed_copy(
+        embedding, num_symbols,
         update_embedding_for_previous) if feed_previous else None
     emb_inp = [
         embedding_ops.embedding_lookup(embedding, i) for i in decoder_inputs]
