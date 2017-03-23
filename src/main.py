@@ -10,7 +10,7 @@ import time
 from BaseDataset import BaseDataset
 from model import BaselineSeq2Seq
 from model import evaluate_model
-from vocabulary import build_vocabulary
+from BaseDataset import build_vocabulary
 
 flags = tf.app.flags
 
@@ -20,6 +20,7 @@ flags.DEFINE_integer("tokens_per_field", 5, "max tokens per field in an infobox"
 flags.DEFINE_integer("rnn_size", 128, "Size of the RNN hidden layer")
 flags.DEFINE_integer("max_source_len", 50, "Size of the input infobox")
 flags.DEFINE_integer("sum_seq_length", 30, "Max length of generated summary")
+flags.DEFINE_integer("min_field_freq", 100, "Min freq of fields to be considered in vocab")
 flags.DEFINE_float("learning_rate", 4e-4, "learning rate")
 flags.DEFINE_string("optimizer", 'adam', "Optimizer to be used")
 flags.DEFINE_integer("batch_size", 64, "Batch size of mini-batches")
@@ -60,10 +61,15 @@ def main(_):
 
     print("Building the word index")
     start = time.time()
-    word_to_id = build_vocabulary(tr_sentences,
-                                  FLAGS.vocab_size,
-                                  FLAGS.sum_seq_length)
+    #word_to_id = build_vocabulary(tr_sentences,
+    #                              FLAGS.vocab_size,
+    #                              FLAGS.sum_seq_length)
+    word_to_id = build_vocabulary(tr_infoboxes, tr_sentences, FLAGS.vocab_size, 
+								  FLAGS.min_field_freq,
+                     			  FLAGS.fields_per_box, 
+								  FLAGS.sum_seq_length)
     id_to_word = dict(zip(word_to_id.values(), word_to_id.keys()))
+	vocab_size = len(word_to_id)
     duration = time.time() - start
     print("Built index in %.3f s" %(duration))
 
@@ -106,7 +112,7 @@ def main(_):
     with tf.Graph().as_default():
         tf.set_random_seed(1234)
 
-        model = BaselineSeq2Seq(FLAGS.vocab_size,
+        model = BaselineSeq2Seq(vocab_size,
                                 FLAGS.embedding_size,
                                 FLAGS.learning_rate,
                                 FLAGS.optimizer,
