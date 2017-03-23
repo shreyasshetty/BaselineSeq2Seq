@@ -17,6 +17,7 @@ flags = tf.app.flags
 flags.DEFINE_integer("vocab_size", 20000, "Vocabulary size")
 flags.DEFINE_integer("embedding_size", 300, "Embedding size")
 flags.DEFINE_integer("tokens_per_field", 5, "max tokens per field in an infobox")
+flags.DEFINE_integer("fields_per_box", 10, "max fields in an infobox")
 flags.DEFINE_integer("rnn_size", 128, "Size of the RNN hidden layer")
 flags.DEFINE_integer("max_source_len", 50, "Size of the input infobox")
 flags.DEFINE_integer("sum_seq_length", 30, "Max length of generated summary")
@@ -64,12 +65,12 @@ def main(_):
     #word_to_id = build_vocabulary(tr_sentences,
     #                              FLAGS.vocab_size,
     #                              FLAGS.sum_seq_length)
-    word_to_id = build_vocabulary(tr_infoboxes, tr_sentences, FLAGS.vocab_size, 
-								  FLAGS.min_field_freq,
-                     			  FLAGS.fields_per_box, 
-								  FLAGS.sum_seq_length)
+    word_to_id = build_vocabulary(tr_infoboxes, tr_sentences, FLAGS.vocab_size,
+                                  FLAGS.min_field_freq,
+                                  FLAGS.fields_per_box,
+                                  FLAGS.sum_seq_length)
     id_to_word = dict(zip(word_to_id.values(), word_to_id.keys()))
-	vocab_size = len(word_to_id)
+    vocab_size = len(word_to_id)
     duration = time.time() - start
     print("Built index in %.3f s" %(duration))
 
@@ -206,7 +207,7 @@ def main(_):
 
             duration_e = time.time() - start_e
             with open(os.path.join(FLAGS.save_dir, 'time_taken.txt'), 'a') as time_f:
-    	        time_f.write('Epoch : %d\tTime taken : %0.5f\n' %(train_dataset.epochs_done, duration_e))
+                time_f.write('Epoch : %d\tTime taken : %0.5f\n' %(train_dataset.epochs_done, duration_e))
 
             if train_dataset.epochs_done % FLAGS.save_every_epochs == 0:
                 modelfile = os.path.join(checkpoint_dir, str(train_dataset.epochs_done) + '.ckpt')
