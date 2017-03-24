@@ -10,6 +10,7 @@ import time
 from BaseDataset import BaseDataset
 from model import BaselineSeq2Seq
 from model import evaluate_model
+from model import generate_sentences
 from BaseDataset import build_vocabulary
 
 flags = tf.app.flags
@@ -32,6 +33,9 @@ flags.DEFINE_integer("print_every", 100, "print the training loss every so many 
 flags.DEFINE_integer("valid_every", 1000, "validate the model every so many steps")
 flags.DEFINE_integer("test_every", 1000, "test the model every so many steps")
 flags.DEFINE_integer("save_every_epochs", 1, "save the model every so many epochs")
+flags.DEFINE_integer("gen_train_every", 1, "generate sentences on train dataset every so many epochs")
+flags.DEFINE_integer("gen_test_every", 1, "generate sentences on test dataset every so many epochs")
+flags.DEFINE_integer("gen_valid_every", 1, "generate sentences on valid dataset every so many epochs")
 
 FLAGS = flags.FLAGS
 
@@ -214,8 +218,31 @@ def main(_):
                 saver.save(sess, modelfile)
 
 			if train_dataset.epochs_done % FLAGS.gen_valid_every == 0:
-                generate_sentences(sess, valid_dataset, logits_op, enc_inputs, dec_inputs,
-                                   dec_weights, feed_previous)				
+				true_path = ps.path.join(FLAGS.save_dir, str(train_dataset.epochs_done) + '_valid.true')
+				save_path = os.path.join(FLAGS.save_dir, str(train_dataset.epochs_done) + '_valid.gen')
+                generate_sentences(sess, valid_dataset, logits_op, enc_inputs,
+                                   dec_inputs, dec_weights, feed_previous,
+                                   id_to_word, FLAGS.batch_size, FLAGS.sum_seq_length,
+                                   vocab_size, save_path, true_path,
+                                   only_num_batches=None)
+
+			if train_dataset.epochs_done % FLAGS.gen_train_every == 0:
+				true_path = ps.path.join(FLAGS.save_dir, str(train_dataset.epochs_done) + '_train.true')
+				save_path = os.path.join(FLAGS.save_dir, str(train_dataset.epochs_done) + '_train.gen')
+                generate_sentences(sess, train_dataset, logits_op, enc_inputs,
+                                   dec_inputs, dec_weights, feed_previous,
+                                   id_to_word, FLAGS.batch_size, FLAGS.sum_seq_length,
+                                   vocab_size, save_path, true_path,
+                                   only_num_batches=None)
+
+			if train_dataset.epochs_done % FLAGS.gen_test_every == 0:
+				true_path = ps.path.join(FLAGS.save_dir, str(train_dataset.epochs_done) + '_test.true')
+				save_path = os.path.join(FLAGS.save_dir, str(train_dataset.epochs_done) + '_test.gen')
+                generate_sentences(sess, test_dataset, logits_op, enc_inputs,
+                                   dec_inputs, dec_weights, feed_previous,
+                                   id_to_word, FLAGS.batch_size, FLAGS.sum_seq_length,
+                                   vocab_size, save_path, true_path,
+                                   only_num_batches=None)
 
 
 if __name__ == "__main__":
