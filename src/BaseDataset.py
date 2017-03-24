@@ -73,7 +73,7 @@ def build_vocabulary(info_path, sent_path, top_k, min_field_freq,
     word_to_id['<EOS>'] = 1
     word_to_id['<OOV>'] = 2
     word_to_id['<GO>'] = 3
-	word_to_id['<COPY>'] = 4
+    word_to_id['<COPY>'] = 4
 
     return word_to_id
 
