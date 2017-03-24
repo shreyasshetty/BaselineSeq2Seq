@@ -222,8 +222,8 @@ def main(_):
                     logits = np.array(sess.run(logits_op, feed_dict=feed_dict))
                     logits = np.reshape(logits, (FLAGS.batch_size, FLAGS.sum_seq_length, vocab_size))
 
-                    save_path = os.path.join(FLAGS.save_dir, str(train_dataset.epochs_done + 1) + 'train.gen')
-                    true_path = os.path.join(FLAGS.save_dir, str(train_dataset.epochs_done + 1) + 'train.true')
+                    save_path = os.path.join(FLAGS.save_dir, str(train_dataset.epochs_done + 1) + '_' + str(step) + '_train.gen')
+                    true_path = os.path.join(FLAGS.save_dir, str(train_dataset.epochs_done + 1) + '_' + str(step) + '_train.true')
 
                     with open(save_path, 'a') as save_f:
                         for idx in xrange(batch_size):
@@ -246,8 +246,8 @@ def main(_):
                     logits = np.array(sess.run(logits_op, feed_dict=feed_dict))
                     logits = np.reshape(logits, (FLAGS.batch_size, FLAGS.sum_seq_length, vocab_size))
 
-                    save_path = os.path.join(FLAGS.save_dir, str(train_dataset.epochs_done + 1) + 'test.gen')
-                    true_path = os.path.join(FLAGS.save_dir, str(train_dataset.epochs_done + 1) + 'test.true')
+                    save_path = os.path.join(FLAGS.save_dir, str(train_dataset.epochs_done + 1) + '_' + str(step) + '_test.gen')
+                    true_path = os.path.join(FLAGS.save_dir, str(train_dataset.epochs_done + 1) + '_' + str(step) + '_test.true')
 
                     with open(save_path, 'a') as save_f:
                         for idx in xrange(batch_size):
@@ -270,8 +270,8 @@ def main(_):
                     logits = np.array(sess.run(logits_op, feed_dict=feed_dict))
                     logits = np.reshape(logits, (FLAGS.batch_size, FLAGS.sum_seq_length, vocab_size))
 
-                    save_path = os.path.join(FLAGS.save_dir, str(train_dataset.epochs_done + 1) + 'valid.gen')
-                    true_path = os.path.join(FLAGS.save_dir, str(train_dataset.epochs_done + 1) + 'valid.true')
+                    save_path = os.path.join(FLAGS.save_dir, str(train_dataset.epochs_done + 1) + '_' + str(step) + '_valid.gen')
+                    true_path = os.path.join(FLAGS.save_dir, str(train_dataset.epochs_done + 1) + '_' + str(step) + '_valid.true')
 
                     with open(save_path, 'a') as save_f:
                         for idx in xrange(batch_size):
