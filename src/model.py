@@ -25,7 +25,7 @@ class BaselineSeq2Seq(object):
         self.optimizer = optimizer
         self.rnn_size = rnn_size
         self.cell = tf.nn.rnn_cell.GRUCell(rnn_size)
-        self.projection_B = tf.get_variable(name="proj_b", shape=[vocab_size]) 
+        self.projection_B = tf.get_variable(name="proj_b", shape=[vocab_size])
         self.projection_W = tf.get_variable(name="proj_w", shape=[rnn_size, vocab_size])
 
     def inference_s2s(self, encoder_inputs, decoder_inputs, feed_previous):
@@ -150,7 +150,7 @@ def generate_sentences(sess, dataset, logits_op, enc_inputs,
         vocab_size       : size of the output vocabulary
         save_path        : path to save the generated sentences
         true_path        : path to save the true sentences
-        only_num_batches : generate sentences for a restricted set of 
+        only_num_batches : generate sentences for a restricted set of
                            batches
     """
     num_batches = dataset.num_batches
@@ -168,7 +168,7 @@ def generate_sentences(sess, dataset, logits_op, enc_inputs,
         logits = np.reshape(logits, (batch_size, num_steps, vocab_size))
 
         with open(save_path, 'a') as save_f:
-            for idx in xrange(batch_size): 
+            for idx in xrange(batch_size):
                 words = []
                 for l in xrange(num_steps):
                     tokenid = np.argmax(logits[idx, l])
@@ -177,4 +177,4 @@ def generate_sentences(sess, dataset, logits_op, enc_inputs,
         with open(true_path, 'a') as true_f:
             for sent in sents:
                 true_f.write(sent)
-    dataset.reset_batch(epochs_done)
+    dataset.reset_batch(epochs_completed=epochs_done)
