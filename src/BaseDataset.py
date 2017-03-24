@@ -423,7 +423,7 @@ class BaseDataset(object):
         """
         batch_size = self.batch_size
         #start = self._permutation[self._index_in_epoch] * batch_size
-		start = self._index_in_epoch
+        start = self._index_in_epoch
         end = start + batch_size
         self._index_in_epoch = end
 
