@@ -213,6 +213,10 @@ def main(_):
                 modelfile = os.path.join(checkpoint_dir, str(train_dataset.epochs_done) + '.ckpt')
                 saver.save(sess, modelfile)
 
+			if train_dataset.epochs_done % FLAGS.gen_valid_every == 0:
+                generate_sentences(sess, valid_dataset, logits_op, enc_inputs, dec_inputs,
+                                   dec_weights, feed_previous)				
+
 
 if __name__ == "__main__":
     tf.app.run()

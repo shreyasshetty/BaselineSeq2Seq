@@ -131,3 +131,32 @@ def evaluate_model(sess, dataset, loss_op, enc_inputs,
     loss = batch_loss / num_batches
     perplexity = np.exp(float(loss)) if loss < 300 else float('inf')
     return loss, perplexity
+
+
+def generate_sentences(sess, dataset, logits_op, enc_inputs,
+                       dec_inputs, dec_weights, feed_previous,
+                       id_to_word, batch_size, num_steps,
+                       vocab_size):
+    num_batches = dataset.num_batches
+    epochs_done = dataset.epochs_done
+    for i in xrange(num_batches):
+        benc_ins, bdec_ins, bdec_wts, sents = dataset.next_batch_gen()
+        feed_dict = { enc_inputs : benc_ins,
+                      dec_inputs : bdec_ins,
+                      dec_weights : bdec_wts,
+                      feed_previous : True
+                    }
+        logits = np.array(sess.run(logits_op, feed_dict=feed_dict))
+        logits = np.reshape(logits, (batch_size, num_steps, vocab_size))
+
+        with open(save_path, 'a') as save_f:
+            for idx in xrange(batch_size): 
+                words = []
+                for l in xrange(num_steps):
+                    tokenid = np.argmax(logits[idx, l])
+                    words.append(id_to_word[tokenid])
+                save_f.write(' '.join(words) + '\n')
+        with open(true_path, 'a') as true_f:
+            for sent in sents:
+                true_f.write(sent)
+    dataset.reset_batch(epochs_done)
