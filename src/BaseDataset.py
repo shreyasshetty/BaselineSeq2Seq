@@ -417,20 +417,19 @@ class BaseDataset(object):
         self._num_examples = len(self.sentences)
         self._epochs_completed = 0
         self._index_in_epoch = 0
-        self._permutation = np.random.permutation(self._num_batches)
 
     def next_batch(self):
         """ next_batch : Generate the next batch for the inference procedure.
         """
         batch_size = self.batch_size
-        start = self._permutation[self._index_in_epoch] * batch_size
+        #start = self._permutation[self._index_in_epoch] * batch_size
+		start = self._index_in_epoch
         end = start + batch_size
-        self._index_in_epoch += 1
+        self._index_in_epoch = end
 
         if self._index_in_epoch == self._num_batches - 1:
             self._index_in_epoch = 0
             self._epochs_completed += 1
-            self._permutation = np.random.permutation(self._num_batches)
 
         enc_inputs = self.input_box[start:end]
         dec_inputs = self.decoder_inputs[start:end]
