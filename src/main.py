@@ -205,10 +205,9 @@ def main(_):
                                                                                                      t_loss,
                                                                                                      t_perp))
                     print('test : epoch %d batch %d : loss = %0.3f perplexity = %0.3f\n' %(train_dataset.epochs_done + 1,
-                                                                                            step,
-                                                                                            t_loss,
-                                                                                            t_perp))
-
+                                                                                           step,
+                                                                                           t_loss,
+                                                                                           t_perp))
             duration_e = time.time() - start_e
             with open(os.path.join(FLAGS.save_dir, 'time_taken.txt'), 'a') as time_f:
                 time_f.write('Epoch : %d\tTime taken : %0.5f\n' %(train_dataset.epochs_done, duration_e))
