@@ -427,7 +427,7 @@ class BaseDataset(object):
         end = start + batch_size
         self._index_in_epoch = end
 
-        if self._index_in_epoch == self._num_batches - 1:
+        if self._index_in_epoch == len(self.input_box):
             self._index_in_epoch = 0
             self._epochs_completed += 1
 
@@ -448,7 +448,7 @@ class BaseDataset(object):
         end = start + batch_size
         self._index_in_epoch = end
 
-        if self._index_in_epoch == self._num_batches - 1:
+        if self._index_in_epoch == len(self.input_box):
             self._index_in_epoch = 0
             self._epochs_completed += 1
 
