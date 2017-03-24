@@ -218,7 +218,7 @@ def main(_):
                 saver.save(sess, modelfile)
 
             if train_dataset.epochs_done % FLAGS.gen_valid_every == 0:
-                true_path = ps.path.join(FLAGS.save_dir, str(train_dataset.epochs_done) + '_valid.true')
+                true_path = os.path.join(FLAGS.save_dir, str(train_dataset.epochs_done) + '_valid.true')
                 save_path = os.path.join(FLAGS.save_dir, str(train_dataset.epochs_done) + '_valid.gen')
                 generate_sentences(sess, valid_dataset, logits_op, enc_inputs,
                                    dec_inputs, dec_weights, feed_previous,
@@ -227,7 +227,7 @@ def main(_):
                                    only_num_batches=None)
 
             if train_dataset.epochs_done % FLAGS.gen_train_every == 0:
-                true_path = ps.path.join(FLAGS.save_dir, str(train_dataset.epochs_done) + '_train.true')
+                true_path = os.path.join(FLAGS.save_dir, str(train_dataset.epochs_done) + '_train.true')
                 save_path = os.path.join(FLAGS.save_dir, str(train_dataset.epochs_done) + '_train.gen')
                 generate_sentences(sess, train_dataset, logits_op, enc_inputs,
                                    dec_inputs, dec_weights, feed_previous,
@@ -236,7 +236,7 @@ def main(_):
                                    only_num_batches=10)
 
             if train_dataset.epochs_done % FLAGS.gen_test_every == 0:
-                true_path = ps.path.join(FLAGS.save_dir, str(train_dataset.epochs_done) + '_test.true')
+                true_path = os.path.join(FLAGS.save_dir, str(train_dataset.epochs_done) + '_test.true')
                 save_path = os.path.join(FLAGS.save_dir, str(train_dataset.epochs_done) + '_test.gen')
                 generate_sentences(sess, test_dataset, logits_op, enc_inputs,
                                    dec_inputs, dec_weights, feed_previous,
