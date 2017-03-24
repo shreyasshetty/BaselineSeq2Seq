@@ -437,13 +437,34 @@ class BaseDataset(object):
 
         return enc_inputs, dec_inputs, dec_weights
 
-    def reset_batch(self):
+    def next_batch_gen(self):
+        """ next_batch_gen : Generate the next batch for generating sentence.
+		difference from next_batch : returns true sentences in addtion to
+		model inputs.
+        """
+        batch_size = self.batch_size
+        #start = self._permutation[self._index_in_epoch] * batch_size
+        start = self._index_in_epoch
+        end = start + batch_size
+        self._index_in_epoch = end
+
+        if self._index_in_epoch == self._num_batches - 1:
+            self._index_in_epoch = 0
+            self._epochs_completed += 1
+
+        enc_inputs = self.input_box[start:end]
+        dec_inputs = self.decoder_inputs[start:end]
+        dec_weights = self.decoder_weights[start:end]
+        sents = self.sentences[start:end]
+
+        return enc_inputs, dec_inputs, dec_weights, sents
+
+    def reset_batch(self, epochs_completed=0):
         """ reset_batch : Reset the dataset. Equivalent to the
         condition at the start of the 1 epoch.
         """
-        self._epochs_completed = 0
+        self._epochs_completed = epochs_completed
         self._index_in_epoch = 0
-        self._permutation = np.random.permutation(self._num_batches)
 
     @property
     def num_examples(self):
