@@ -136,8 +136,26 @@ def evaluate_model(sess, dataset, loss_op, enc_inputs,
 def generate_sentences(sess, dataset, logits_op, enc_inputs,
                        dec_inputs, dec_weights, feed_previous,
                        id_to_word, batch_size, num_steps,
-                       vocab_size):
+                       vocab_size, save_path, true_path,
+                       only_num_batches=None):
+    """ generate_sentences:
+    Args:
+        sess             : sess to run the ops in
+        dataset          : dataset to generate sentences on
+        logits_op        : inference procedure
+        enc_inputs       : encoder inputs
+        dec_inputs       : decoder inputs
+        dec_weights      : decoder weights
+        feed_previous    : feed_previous flag
+        vocab_size       : size of the output vocabulary
+        save_path        : path to save the generated sentences
+        true_path        : path to save the true sentences
+        only_num_batches : generate sentences for a restricted set of 
+                           batches
+    """
     num_batches = dataset.num_batches
+    if only_num_batches is not None:
+        num_batches = only_num_batches
     epochs_done = dataset.epochs_done
     for i in xrange(num_batches):
         benc_ins, bdec_ins, bdec_wts, sents = dataset.next_batch_gen()
