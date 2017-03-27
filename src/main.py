@@ -36,9 +36,9 @@ flags.DEFINE_integer("save_every_epochs", 1, "save the model every so many epoch
 flags.DEFINE_integer("gen_train_every", 1, "generate sentences on train dataset every so many epochs")
 flags.DEFINE_integer("gen_test_every", 1, "generate sentences on test dataset every so many epochs")
 flags.DEFINE_integer("gen_valid_every", 1, "generate sentences on valid dataset every so many epochs")
-flags.DEFINE_integer("train_step_every", 1, "generate sentences on train dataset every so many steps")
-flags.DEFINE_integer("test_step_every", 1, "generate sentences on test dataset every so many steps")
-flags.DEFINE_integer("valid_step_every", 1, "generate sentences on valid dataset every so many steps")
+flags.DEFINE_integer("train_step_every", 1000, "generate sentences on train dataset every so many steps")
+flags.DEFINE_integer("test_step_every", 1000, "generate sentences on test dataset every so many steps")
+flags.DEFINE_integer("valid_step_every", 1000, "generate sentences on valid dataset every so many steps")
 flags.DEFINE_integer("true_feed", 1, "change feed_previous to True for train dataset after these many epochs")
 
 FLAGS = flags.FLAGS
