@@ -158,10 +158,10 @@ def main(_):
             start_e = time.time()
             for step in range(train_dataset.num_batches):
                 benc_ins, bdec_ins, bdec_wts = train_dataset.next_batch()
-				if train_dataset.epochs_done >= FLAGS.true_feed:
-					train_feed = True
-				else:
-					train_feed = False
+                if train_dataset.epochs_done >= FLAGS.true_feed:
+                    train_feed = True
+                else:
+                    train_feed = False
                 feed_dict = {enc_inputs : benc_ins,
                              dec_inputs : bdec_ins,
                              dec_weights : bdec_wts,
