@@ -36,6 +36,7 @@ flags.DEFINE_integer("save_every_epochs", 1, "save the model every so many epoch
 flags.DEFINE_integer("gen_train_every", 1, "generate sentences on train dataset every so many epochs")
 flags.DEFINE_integer("gen_test_every", 1, "generate sentences on test dataset every so many epochs")
 flags.DEFINE_integer("gen_valid_every", 1, "generate sentences on valid dataset every so many epochs")
+flags.DEFINE_integer("true_feed", 1, "set feed_previous to True for train dataset after so many epochs")
 
 FLAGS = flags.FLAGS
 
@@ -154,10 +155,14 @@ def main(_):
             start_e = time.time()
             for step in range(train_dataset.num_batches):
                 benc_ins, bdec_ins, bdec_wts = train_dataset.next_batch()
+				if train_dataset.epochs_done >= FLAGS.train_true:
+				    true_feed = True
+				else:
+					true_feed = False
                 feed_dict = {enc_inputs : benc_ins,
                              dec_inputs : bdec_ins,
                              dec_weights : bdec_wts,
-                             feed_previous : False}
+                             feed_previous : true_feed}
                 _, loss_val = sess.run([train_op, loss_op],
                                        feed_dict=feed_dict)
                 perplexity = np.exp(float(loss_val)) if loss_val < 300 else float('inf')
