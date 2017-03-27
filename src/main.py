@@ -219,6 +219,7 @@ def main(_):
 
                 if step % FLAGS.train_step_every == 0 and step != 0:
                     epochs_done = train_dataset.epochs_done
+					index_in_epoch = train_dataset.index_in_epoch
                     benc_ins, bdec_ins, bdec_wts, sents = train_dataset.next_batch_gen()
                     feed_dict = {enc_inputs : benc_ins,
                                  dec_inputs : bdec_ins,
@@ -240,7 +241,7 @@ def main(_):
                     with open(true_path, 'a') as true_f:
                         for sent in sents:
                             true_f.write(sent)
-                    train_dataset.reset_batch(step, epochs_done)
+                    train_dataset.reset_batch(index_in_epoch, epochs_done)
 
                 if step % FLAGS.test_step_every == 0 and step != 0:
                     benc_ins, bdec_ins, bdec_wts, sents = test_dataset.next_batch_gen()
