@@ -459,12 +459,12 @@ class BaseDataset(object):
 
         return enc_inputs, dec_inputs, dec_weights, sents
 
-    def reset_batch(self, epochs_completed=0):
+    def reset_batch(self, index_in_epoch=0, epochs_completed=0):
         """ reset_batch : Reset the dataset. Equivalent to the
         condition at the start of the 1 epoch.
         """
         self._epochs_completed = epochs_completed
-        self._index_in_epoch = 0
+        self._index_in_epoch = index_in_epoch
 
     @property
     def num_examples(self):

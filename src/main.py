@@ -1,11 +1,11 @@
 """ main.py : The main script for running the baseline models.
 """
 
-import numpy as np
-import tensorflow as tf
 import os
 import json
 import time
+import numpy as np
+import tensorflow as tf
 
 from BaseDataset import BaseDataset
 from model import BaselineSeq2Seq
@@ -36,7 +36,10 @@ flags.DEFINE_integer("save_every_epochs", 1, "save the model every so many epoch
 flags.DEFINE_integer("gen_train_every", 1, "generate sentences on train dataset every so many epochs")
 flags.DEFINE_integer("gen_test_every", 1, "generate sentences on test dataset every so many epochs")
 flags.DEFINE_integer("gen_valid_every", 1, "generate sentences on valid dataset every so many epochs")
-flags.DEFINE_integer("true_feed", 1, "set feed_previous to True for train dataset after so many epochs")
+flags.DEFINE_integer("train_step_every", 1, "generate sentences on train dataset every so many steps")
+flags.DEFINE_integer("test_step_every", 1, "generate sentences on test dataset every so many steps")
+flags.DEFINE_integer("valid_step_every", 1, "generate sentences on valid dataset every so many steps")
+flags.DEFINE_integer("true_feed", 1, "change feed_previous to True for train dataset after these many epochs")
 
 FLAGS = flags.FLAGS
 
@@ -155,14 +158,10 @@ def main(_):
             start_e = time.time()
             for step in range(train_dataset.num_batches):
                 benc_ins, bdec_ins, bdec_wts = train_dataset.next_batch()
-				if train_dataset.epochs_done >= FLAGS.train_true:
-				    true_feed = True
-				else:
-					true_feed = False
                 feed_dict = {enc_inputs : benc_ins,
                              dec_inputs : bdec_ins,
                              dec_weights : bdec_wts,
-                             feed_previous : true_feed}
+                             feed_previous : False}
                 _, loss_val = sess.run([train_op, loss_op],
                                        feed_dict=feed_dict)
                 perplexity = np.exp(float(loss_val)) if loss_val < 300 else float('inf')
@@ -210,9 +209,83 @@ def main(_):
                                                                                                      t_loss,
                                                                                                      t_perp))
                     print('test : epoch %d batch %d : loss = %0.3f perplexity = %0.3f\n' %(train_dataset.epochs_done + 1,
-                                                                                            step,
-                                                                                            t_loss,
-                                                                                            t_perp))
+                                                                                           step,
+                                                                                           t_loss,
+                                                                                           t_perp))
+
+                if step % FLAGS.train_step_every == 0 and step != 0:
+                    epochs_done = train_dataset.epochs_done
+                    benc_ins, bdec_ins, bdec_wts, sents = train_dataset.next_batch_gen()
+                    feed_dict = {enc_inputs : benc_ins,
+                                 dec_inputs : bdec_ins,
+                                 dec_weights : bdec_wts,
+                                 feed_previous : True}
+                    logits = np.array(sess.run(logits_op, feed_dict=feed_dict))
+                    logits = np.reshape(logits, (FLAGS.batch_size, FLAGS.sum_seq_length, vocab_size))
+
+                    save_path = os.path.join(FLAGS.save_dir, str(train_dataset.epochs_done + 1) + '_' + str(step) + '_train.gen')
+                    true_path = os.path.join(FLAGS.save_dir, str(train_dataset.epochs_done + 1) + '_' + str(step) + '_train.true')
+
+                    with open(save_path, 'a') as save_f:
+                        for idx in xrange(batch_size):
+                            words = []
+                            for l in xrange(FLAGS.sum_seq_length):
+                                tokenid = np.argmax(logits[idx, l])
+                                words.append(id_to_word[tokenid])
+                                save_f.write(' '.join(words) + '\n')
+                    with open(true_path, 'a') as true_f:
+                        for sent in sents:
+                            true_f.write(sent)
+                    train_dataset.reset_batch(step, epochs_done)
+
+                if step % FLAGS.test_step_every == 0 and step != 0:
+                    benc_ins, bdec_ins, bdec_wts, sents = test_dataset.next_batch_gen()
+                    feed_dict = {enc_inputs : benc_ins,
+                                 dec_inputs : bdec_ins,
+                                 dec_weights : bdec_wts,
+                                 feed_previous : True}
+                    logits = np.array(sess.run(logits_op, feed_dict=feed_dict))
+                    logits = np.reshape(logits, (FLAGS.batch_size, FLAGS.sum_seq_length, vocab_size))
+
+                    save_path = os.path.join(FLAGS.save_dir, str(train_dataset.epochs_done + 1) + '_' + str(step) + '_test.gen')
+                    true_path = os.path.join(FLAGS.save_dir, str(train_dataset.epochs_done + 1) + '_' + str(step) + '_test.true')
+
+                    with open(save_path, 'a') as save_f:
+                        for idx in xrange(batch_size):
+                            words = []
+                            for l in xrange(FLAGS.sum_seq_length):
+                                tokenid = np.argmax(logits[idx, l])
+                                words.append(id_to_word[tokenid])
+                                save_f.write(' '.join(words) + '\n')
+                    with open(true_path, 'a') as true_f:
+                        for sent in sents:
+                            true_f.write(sent)
+                    test_dataset.reset_batch()
+
+                if step % FLAGS.valid_step_every == 0 and step != 0:
+                    benc_ins, bdec_ins, bdec_wts, sents = valid_dataset.next_batch_gen()
+                    feed_dict = {enc_inputs : benc_ins,
+                                 dec_inputs : bdec_ins,
+                                 dec_weights : bdec_wts,
+                                 feed_previous : True}
+                    logits = np.array(sess.run(logits_op, feed_dict=feed_dict))
+                    logits = np.reshape(logits, (FLAGS.batch_size, FLAGS.sum_seq_length, vocab_size))
+
+                    save_path = os.path.join(FLAGS.save_dir, str(train_dataset.epochs_done + 1) + '_' + str(step) + '_valid.gen')
+                    true_path = os.path.join(FLAGS.save_dir, str(train_dataset.epochs_done + 1) + '_' + str(step) + '_valid.true')
+
+                    with open(save_path, 'a') as save_f:
+                        for idx in xrange(batch_size):
+                            words = []
+                            for l in xrange(FLAGS.sum_seq_length):
+                                tokenid = np.argmax(logits[idx, l])
+                                words.append(id_to_word[tokenid])
+                                save_f.write(' '.join(words) + '\n')
+                    with open(true_path, 'a') as true_f:
+                        for sent in sents:
+                            true_f.write(sent)
+                    valid_dataset.reset_batch()
+
 
             duration_e = time.time() - start_e
             with open(os.path.join(FLAGS.save_dir, 'time_taken.txt'), 'a') as time_f:
