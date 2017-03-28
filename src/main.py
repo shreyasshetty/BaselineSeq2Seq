@@ -4,6 +4,7 @@
 import os
 import json
 import time
+import sys
 import numpy as np
 import tensorflow as tf
 
@@ -201,6 +202,7 @@ def main(_):
                                                                                  step,
                                                                                  loss_val,
                                                                                  perplexity))
+                    sys.stdout.flush()
 
                 if step % FLAGS.valid_every == 0 and step != 0:
                     v_loss, v_perp = evaluate_model(sess,
@@ -219,6 +221,7 @@ def main(_):
                                                                                             step,
                                                                                             v_loss,
                                                                                             v_perp))
+                    sys.stdout.flush()
 
                 if step % FLAGS.test_every == 0 and step != 0:
                     t_loss, t_perp = evaluate_model(sess,
@@ -237,6 +240,7 @@ def main(_):
                                                                                            step,
                                                                                            t_loss,
                                                                                            t_perp))
+                    sys.stdout.flush()
 
                 if step % FLAGS.train_step_every == 0 and step != 0:
                     epochs_done = train_dataset.epochs_done
