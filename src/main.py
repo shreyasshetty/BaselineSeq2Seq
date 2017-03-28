@@ -12,6 +12,7 @@ from model import BaselineSeq2Seq
 from model import evaluate_model
 from model import generate_sentences
 from BaseDataset import build_vocabulary
+from load_pretrained import build_index
 
 flags = tf.app.flags
 
@@ -40,6 +41,7 @@ flags.DEFINE_integer("train_step_every", 1000, "generate sentences on train data
 flags.DEFINE_integer("test_step_every", 1000, "generate sentences on test dataset every so many steps")
 flags.DEFINE_integer("valid_step_every", 1000, "generate sentences on valid dataset every so many steps")
 flags.DEFINE_integer("true_feed", 1, "change feed_previous to True for train dataset after these many epochs")
+flags.DEFINE_integer("load_pretrained", 1, "load pretrained hpca embedding 1(on) - default 0(off)")
 
 FLAGS = flags.FLAGS
 
@@ -70,13 +72,19 @@ def main(_):
 
     print("Building the word index")
     start = time.time()
-    #word_to_id = build_vocabulary(tr_sentences,
-    #                              FLAGS.vocab_size,
-    #                              FLAGS.sum_seq_length)
-    word_to_id = build_vocabulary(tr_infoboxes, tr_sentences, FLAGS.vocab_size,
-                                  FLAGS.min_field_freq,
-                                  FLAGS.fields_per_box,
-                                  FLAGS.sum_seq_length)
+    if FLAGS.load_pretrained == 1:
+        targ_path = os.path.join(FLAGS.data_dir, 'target_words.txt')
+        embed_path = os.path.join(FLAGS.data_dir, 'words.txt')
+        if os.path.exists(targ_path) and os.path.exists(embed_path):
+            word_to_id, init_embed = build_index(targ_path, embed_path, FLAGS.vocab_size)
+        else:
+            print('Pretrained embedding not found in the data folder')
+            return
+    else:
+        word_to_id = build_vocabulary(tr_infoboxes, tr_sentences, FLAGS.vocab_size,
+                                      FLAGS.min_field_freq,
+                                      FLAGS.fields_per_box,
+                                      FLAGS.sum_seq_length)
     id_to_word = dict(zip(word_to_id.values(), word_to_id.keys()))
     vocab_size = len(word_to_id)
     duration = time.time() - start
