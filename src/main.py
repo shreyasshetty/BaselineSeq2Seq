@@ -36,9 +36,10 @@ flags.DEFINE_integer("save_every_epochs", 1, "save the model every so many epoch
 flags.DEFINE_integer("gen_train_every", 1, "generate sentences on train dataset every so many epochs")
 flags.DEFINE_integer("gen_test_every", 1, "generate sentences on test dataset every so many epochs")
 flags.DEFINE_integer("gen_valid_every", 1, "generate sentences on valid dataset every so many epochs")
-flags.DEFINE_integer("train_step_every", 1, "generate sentences on train dataset every so many steps")
-flags.DEFINE_integer("test_step_every", 1, "generate sentences on test dataset every so many steps")
-flags.DEFINE_integer("valid_step_every", 1, "generate sentences on valid dataset every so many steps")
+flags.DEFINE_integer("train_step_every", 1000, "generate sentences on train dataset every so many steps")
+flags.DEFINE_integer("test_step_every", 1000, "generate sentences on test dataset every so many steps")
+flags.DEFINE_integer("valid_step_every", 1000, "generate sentences on valid dataset every so many steps")
+flags.DEFINE_integer("true_feed", 1, "change feed_previous to True for train dataset after these many epochs")
 
 FLAGS = flags.FLAGS
 
@@ -157,10 +158,14 @@ def main(_):
             start_e = time.time()
             for step in range(train_dataset.num_batches):
                 benc_ins, bdec_ins, bdec_wts = train_dataset.next_batch()
+                if train_dataset.epochs_done >= FLAGS.true_feed:
+                    train_feed = True
+                else:
+                    train_feed = False
                 feed_dict = {enc_inputs : benc_ins,
                              dec_inputs : bdec_ins,
                              dec_weights : bdec_wts,
-                             feed_previous : False}
+                             feed_previous : train_feed}
                 _, loss_val = sess.run([train_op, loss_op],
                                        feed_dict=feed_dict)
                 perplexity = np.exp(float(loss_val)) if loss_val < 300 else float('inf')
@@ -214,6 +219,7 @@ def main(_):
 
                 if step % FLAGS.train_step_every == 0 and step != 0:
                     epochs_done = train_dataset.epochs_done
+                    index_in_epoch = train_dataset.index_in_epoch
                     benc_ins, bdec_ins, bdec_wts, sents = train_dataset.next_batch_gen()
                     feed_dict = {enc_inputs : benc_ins,
                                  dec_inputs : bdec_ins,
@@ -235,7 +241,7 @@ def main(_):
                     with open(true_path, 'a') as true_f:
                         for sent in sents:
                             true_f.write(sent)
-                    train_dataset.reset_batch(step, epochs_done)
+                    train_dataset.reset_batch(index_in_epoch, epochs_done)
 
                 if step % FLAGS.test_step_every == 0 and step != 0:
                     benc_ins, bdec_ins, bdec_wts, sents = test_dataset.next_batch_gen()

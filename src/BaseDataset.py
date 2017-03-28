@@ -439,8 +439,8 @@ class BaseDataset(object):
 
     def next_batch_gen(self):
         """ next_batch_gen : Generate the next batch for generating sentence.
-		difference from next_batch : returns true sentences in addtion to
-		model inputs.
+        difference from next_batch : returns true sentences in addtion to
+        model inputs.
         """
         batch_size = self.batch_size
         #start = self._permutation[self._index_in_epoch] * batch_size
@@ -458,7 +458,7 @@ class BaseDataset(object):
         sents = self.sentences[start:end]
 
         return enc_inputs, dec_inputs, dec_weights, sents
-
+    
     def reset_batch(self, index_in_epoch=0, epochs_completed=0):
         """ reset_batch : Reset the dataset. Equivalent to the
         condition at the start of the 1 epoch.
@@ -481,3 +481,7 @@ class BaseDataset(object):
     @property
     def epochs_done(self):
         return self._epochs_completed
+
+    @property
+    def index_in_epoch(self):
+        return self._index_in_epoch
