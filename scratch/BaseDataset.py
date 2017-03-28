@@ -73,7 +73,7 @@ def build_vocabulary(info_path, sent_path, top_k, min_field_freq,
     word_to_id['<EOS>'] = 1
     word_to_id['<OOV>'] = 2
     word_to_id['<GO>'] = 3
-	word_to_id['<COPY>'] = 4
+    word_to_id['<COPY>'] = 4
 
     return word_to_id
 
@@ -275,20 +275,18 @@ class BaseDatasetCopy(object):
         self._num_examples = len(self.sentences)
         self._epochs_completed = 0
         self._index_in_epoch = 0
-        self._permutation = np.random.permutation(self._num_batches)
 
     def next_batch(self):
         """ next_batch : Generate the next batch for the inference procedure.
         """
         batch_size = self.batch_size
-        start = self._permutation[self._index_in_epoch] * batch_size
+        start = self._index_in_epoch
         end = start + batch_size
-        self._index_in_epoch += 1
+        self._index_in_epoch = end
 
-        if self._index_in_epoch == self._num_batches - 1:
+        if self._index_in_epoch == len(self.input_box):
             self._index_in_epoch = 0
             self._epochs_completed += 1
-            self._permutation = np.random.permutation(self._num_batches)
 
         enc_inputs = self.input_box[start:end]
         dec_inputs = self.decoder_inputs[start:end]
@@ -297,13 +295,32 @@ class BaseDatasetCopy(object):
 
         return enc_inputs, dec_inputs, z, dec_weights
 
-    def reset_batch(self):
+    def next_batch_gen(self):
+        """ next_batch_gen : Generate the next batch for the inference procedure.
+        """
+        batch_size = self.batch_size
+        start = self._index_in_epoch
+        end = start + batch_size
+        self._index_in_epoch = end
+
+        if self._index_in_epoch == len(self.input_box):
+            self._index_in_epoch = 0
+            self._epochs_completed += 1
+
+        enc_inputs = self.input_box[start:end]
+        dec_inputs = self.decoder_inputs[start:end]
+        dec_weights = self.decoder_weights[start:end]
+        z = self.z[start:end]
+		sents = self.sentences[start:end]
+
+        return enc_inputs, dec_inputs, z, dec_weights, sents
+
+    def reset_batch(self, index_in_epoch=0, epochs_done=0):
         """ reset_batch : Reset the dataset. Equivalent to the
         condition at the start of the 1 epoch.
         """
-        self._epochs_completed = 0
-        self._index_in_epoch = 0
-        self._permutation = np.random.permutation(self._num_batches)
+        self._index_in_epoch = index_in_epoch
+        self._epochs_completed = epochs_done
 
     @property
     def num_examples(self):
@@ -320,6 +337,10 @@ class BaseDatasetCopy(object):
     @property
     def epochs_done(self):
         return self._epochs_completed
+    
+    @property
+    def index_in_epoch(self):
+        return self._index_in_epoch
 
 class BaseDataset(object):
     """ BaseDataset : Defines the dataset object for the baseline model.

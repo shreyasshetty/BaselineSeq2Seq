@@ -499,6 +499,18 @@ def embedding_tied_rnn_seq2seq(encoder_inputs, decoder_inputs, cell,
     return outputs_and_state[:outputs_len], state
 
 
+def mult_vector_scalar(x, y):
+  """ x - [batch_size, size]
+      y - [batch_size]
+	  Return z [batch_size, size]
+  """
+  x = tf.unpack(x, axis=0)
+  y = tf.unpack(y, axis=0)
+  z = [tf.mul(a, b) for (a,b) in zip(x, y)]
+  z = tf.pack(z, axis=0)
+  return z
+
+
 def attention_decoder(decoder_inputs, initial_state, attention_states, cell,
                       output_size=None, num_heads=1, loop_function=None,
                       dtype=dtypes.float32, scope=None,
@@ -638,11 +650,13 @@ def attention_decoder(decoder_inputs, initial_state, attention_states, cell,
         attns, attn_vec = attention(state)
         z_t = tf.nn.sigmoid(linear([inp] + [cell_output] + attns, 1, True))
 
-      one_min_z_t = tf.ones(batch_size) - z_t
+      one_min_z_t = 1 - z_t
       with variable_scope.variable_scope("AttnOutputProjection"):
         output = linear([cell_output] + attns, output_size, True)
-		w_t = tf.mul(output, one_min_z_t)
-		l_t = tf.mul(attn_vec, z_t)
+		#w_t = tf.mul(output, one_min_z_t)
+		w_t = mult_vector_scalar(output, one_min_z_t)
+		#l_t = tf.mul(attn_vec, z_t)
+		l_t = mult_vector_scalar(attn_vec, z_t)
 		output_merged = tf.concat(1, [w_t, l_t])
         # apply softmax
 
@@ -652,9 +666,6 @@ def attention_decoder(decoder_inputs, initial_state, attention_states, cell,
 
       # decoder runs for sum_len + 1 steps
       outputs = outputs[:-1]
-      w_t = tf.nn.softmax(outputs)
-      z.append(z_t)
-      l_t.append(attn_vec)
 
   return outputs, state
 
