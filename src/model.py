@@ -6,6 +6,7 @@
 import numpy as np
 import tensorflow as tf
 from seq2seq import embedding_attention_seq2seq
+from seq2seq import embedding_tied_rnn_seq2seq
 
 
 class BaselineSeq2Seq(object):
@@ -18,13 +19,19 @@ class BaselineSeq2Seq(object):
                  embedding_size,
                  learning_rate,
                  optimizer,
-                 rnn_size):
+                 rnn_size,
+                 init_embed,
+                 load_init,
+                 trainable=False):
         self.vocab_size = vocab_size
         self.embedding_size = embedding_size
         self.learning_rate = learning_rate
         self.optimizer = optimizer
         self.rnn_size = rnn_size
         self.cell = tf.nn.rnn_cell.GRUCell(rnn_size)
+        self.init_embed = init_embed
+        self.load_init = load_init
+        self.trainable = trainable
         self.projection_B = tf.get_variable(name="proj_b", shape=[vocab_size])
         self.projection_W = tf.get_variable(name="proj_w", shape=[rnn_size, vocab_size])
 
@@ -32,7 +39,6 @@ class BaselineSeq2Seq(object):
         vocab_size = self.vocab_size
         embedding_size = self.embedding_size
         cell = self.cell
-        embedding_tied_rnn_seq2seq = tf.nn.seq2seq.embedding_tied_rnn_seq2seq
 
         encoder_inputs = tf.unpack(encoder_inputs, axis=1)
         decoder_inputs = tf.unpack(decoder_inputs, axis=1)
@@ -42,6 +48,9 @@ class BaselineSeq2Seq(object):
                                                 cell,
                                                 vocab_size,
                                                 embedding_size,
+                                                self.init_embed,
+                                                self.load_init,
+                                                self.trainable,
                                                 feed_previous=feed_previous)
         return outputs[:-1]
 
