@@ -29,7 +29,7 @@ flags.DEFINE_string("optimizer", 'adam', "Optimizer to be used")
 flags.DEFINE_integer("batch_size", 64, "Batch size of mini-batches")
 flags.DEFINE_string("data_dir", "../data", "Path to the dataset directory")
 flags.DEFINE_string("save_dir", "../experiment/", "Save the results in the following path")
-flags.DEFINE_integer("num_epochs", 5, "number of epochs to run the experiment")
+flags.DEFINE_integer("num_epochs", 25, "number of epochs to run the experiment")
 flags.DEFINE_integer("print_every", 100, "print the training loss every so many steps")
 flags.DEFINE_integer("valid_every", 1000, "validate the model every so many steps")
 flags.DEFINE_integer("test_every", 1000, "test the model every so many steps")
@@ -42,6 +42,7 @@ flags.DEFINE_integer("test_step_every", 1000, "generate sentences on test datase
 flags.DEFINE_integer("valid_step_every", 1000, "generate sentences on valid dataset every so many steps")
 flags.DEFINE_integer("true_feed", 1, "change feed_previous to True for train dataset after these many epochs")
 flags.DEFINE_integer("load_pretrained", 1, "load pretrained hpca embedding 1(on) - default 0(off)")
+flags.DEFINE_integer("trainable", 1, "make pretrained hpca embedding trainable 1(on) - default 0(off)")
 
 FLAGS = flags.FLAGS
 
@@ -75,8 +76,13 @@ def main(_):
     if FLAGS.load_pretrained == 1:
         targ_path = os.path.join(FLAGS.data_dir, 'target_words.txt')
         embed_path = os.path.join(FLAGS.data_dir, 'words.txt')
+        if FLAGS.trainable == 1:
+            trainable = True
+        else:
+            trainable = False
         if os.path.exists(targ_path) and os.path.exists(embed_path):
             word_to_id, init_embed = build_index(targ_path, embed_path, FLAGS.vocab_size)
+            load_init = True
         else:
             print('Pretrained embedding not found in the data folder')
             return
@@ -85,6 +91,9 @@ def main(_):
                                       FLAGS.min_field_freq,
                                       FLAGS.fields_per_box,
                                       FLAGS.sum_seq_length)
+        init_embed = None # No use of init_embed when we do not use pretrained embeds
+        trainable = True
+        load_init = False
     id_to_word = dict(zip(word_to_id.values(), word_to_id.keys()))
     vocab_size = len(word_to_id)
     duration = time.time() - start
@@ -133,7 +142,10 @@ def main(_):
                                 FLAGS.embedding_size,
                                 FLAGS.learning_rate,
                                 FLAGS.optimizer,
-                                FLAGS.rnn_size)
+                                FLAGS.rnn_size,
+                                init_embed,
+                                load_init,
+                                trainable)
 
         enc_inputs = tf.placeholder(tf.int32,
                                     shape=(batch_size, max_source_len),
@@ -163,6 +175,7 @@ def main(_):
         print '\n'.join([v.name for v in tf.trainable_variables()])
 
         while train_dataset.epochs_done < FLAGS.num_epochs:
+            epochs_done = train_dataset.epochs_done
             start_e = time.time()
             for step in range(train_dataset.num_batches):
                 benc_ins, bdec_ins, bdec_wts = train_dataset.next_batch()
@@ -299,6 +312,8 @@ def main(_):
                             true_f.write(sent)
                     valid_dataset.reset_batch()
 
+            if train_dataset.epochs_done != epochs_done + 1:
+                train_dataset.reset_batch(epochs_completed=epochs_done + 1)
 
             duration_e = time.time() - start_e
             with open(os.path.join(FLAGS.save_dir, 'time_taken.txt'), 'a') as time_f:
