@@ -69,6 +69,9 @@ class BaselineSeq2Seq(object):
                                                  vocab_size,
                                                  vocab_size,
                                                  embedding_size,
+                                                 self.init_embed,
+                                                 self.load_init,
+                                                 self.trainable,
                                                  feed_previous=feed_previous,
                                                  output_projection=output_projection)
         outputs = outputs[:-1]

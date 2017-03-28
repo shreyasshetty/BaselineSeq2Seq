@@ -361,6 +361,7 @@ def embedding_rnn_seq2seq(encoder_inputs, decoder_inputs, cell,
 
 def embedding_tied_rnn_seq2seq(encoder_inputs, decoder_inputs, cell,
                                num_symbols, embedding_size,
+                               init_embed, load_init, trainable,
                                num_decoder_symbols=None,
                                output_projection=None, feed_previous=False,
                                dtype=dtypes.float32, scope=None):
@@ -416,8 +417,13 @@ def embedding_tied_rnn_seq2seq(encoder_inputs, decoder_inputs, cell,
     proj_biases.get_shape().assert_is_compatible_with([num_symbols])
 
   with variable_scope.variable_scope(scope or "embedding_tied_rnn_seq2seq"):
-    embedding = variable_scope.get_variable("embedding",
-            [num_symbols, embedding_size])
+    if load_init:
+      embedding = variable_scope.get_variable("embedding",
+                                              initializer=init_embed,
+                                              trainable=trainable)
+    else:
+      embedding = variable_scope.get_variable("embedding",
+                                              [num_symbols, embedding_size])
 
     emb_encoder_inputs = [embedding_ops.embedding_lookup(embedding, x)
                           for x in encoder_inputs]
@@ -622,7 +628,7 @@ def embedding_attention_decoder(decoder_inputs, initial_state, attention_states,
                                 update_embedding_for_previous=True,
                                 dtype=dtypes.float32, scope=None,
                                 initial_state_attention=False,
-								embedding_scope=None):
+                                embedding_scope=None):
   """RNN decoder with embedding and attention and a pure-decoding option.
 
   Args:
@@ -682,8 +688,8 @@ def embedding_attention_decoder(decoder_inputs, initial_state, attention_states,
         update_embedding_for_previous) if feed_previous else None
     emb_inp = [
         embedding_ops.embedding_lookup(embedding, i) for i in decoder_inputs]
-  
-  
+
+
   with variable_scope.variable_scope(scope or "embedding_attention_decoder") as scope:
     return attention_decoder(
         emb_inp, initial_state, attention_states, cell, output_size=output_size,
@@ -693,8 +699,8 @@ def embedding_attention_decoder(decoder_inputs, initial_state, attention_states,
 
 def embedding_attention_seq2seq(encoder_inputs, decoder_inputs, cell,
                                 num_encoder_symbols, num_decoder_symbols,
-                                embedding_size,
-                                num_heads=1, output_projection=None,
+                                embedding_size, init_embed, load_init,
+                                trainable, num_heads=1, output_projection=None,
                                 feed_previous=False, dtype=dtypes.float32,
                                 scope=None, initial_state_attention=False):
   """Embedding sequence-to-sequence model with attention.
@@ -743,9 +749,14 @@ def embedding_attention_seq2seq(encoder_inputs, decoder_inputs, cell,
     #encoder_cell = rnn_cell.EmbeddingWrapper(
     #    cell, embedding_classes=num_encoder_symbols,
     #    embedding_size=embedding_size)
-    embedding = variable_scope.get_variable('embedding', 
-                                            [num_encoder_symbols, embedding_size],
-                                            trainable=True)
+    if load_init:
+      embedding = variable_scope.get_variable("embedding",
+                                              initializer=init_embed,
+                                              trainable=trainable)
+    else:
+      embedding = variable_scope.get_variable('embedding',
+                                              [num_encoder_symbols, embedding_size],
+                                              trainable=True)
     embedded_inputs = embedding_ops.embedding_lookup(embedding, encoder_inputs)
     embedded_inputs = array_ops.unpack(embedded_inputs)
 
