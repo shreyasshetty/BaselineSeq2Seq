@@ -41,8 +41,8 @@ flags.DEFINE_integer("train_step_every", 1000, "generate sentences on train data
 flags.DEFINE_integer("test_step_every", 1000, "generate sentences on test dataset every so many steps")
 flags.DEFINE_integer("valid_step_every", 1000, "generate sentences on valid dataset every so many steps")
 flags.DEFINE_integer("true_feed", 1, "change feed_previous to True for train dataset after these many epochs")
-flags.DEFINE_integer("load_pretrained", 1, "load pretrained hpca embedding 1(on) - default 0(off)")
-flags.DEFINE_integer("trainable", 1, "make pretrained hpca embedding trainable 1(on) - default 0(off)")
+flags.DEFINE_integer("load_pretrained", 1, "load pretrained hpca embedding 1(on)- default  on - 0(off)")
+flags.DEFINE_integer("trainable", 1, "make pretrained hpca embedding trainable 1(on) - default on - 0(off)")
 
 FLAGS = flags.FLAGS
 
