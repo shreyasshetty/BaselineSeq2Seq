@@ -262,7 +262,7 @@ def main(_):
                             for l in xrange(FLAGS.sum_seq_length):
                                 tokenid = np.argmax(logits[idx, l])
                                 words.append(id_to_word[tokenid])
-                                save_f.write(' '.join(words) + '\n')
+                            save_f.write(' '.join(words) + '\n')
                     with open(true_path, 'a') as true_f:
                         for sent in sents:
                             true_f.write(sent)
@@ -286,7 +286,7 @@ def main(_):
                             for l in xrange(FLAGS.sum_seq_length):
                                 tokenid = np.argmax(logits[idx, l])
                                 words.append(id_to_word[tokenid])
-                                save_f.write(' '.join(words) + '\n')
+                            save_f.write(' '.join(words) + '\n')
                     with open(true_path, 'a') as true_f:
                         for sent in sents:
                             true_f.write(sent)
@@ -310,7 +310,7 @@ def main(_):
                             for l in xrange(FLAGS.sum_seq_length):
                                 tokenid = np.argmax(logits[idx, l])
                                 words.append(id_to_word[tokenid])
-                                save_f.write(' '.join(words) + '\n')
+                            save_f.write(' '.join(words) + '\n')
                     with open(true_path, 'a') as true_f:
                         for sent in sents:
                             true_f.write(sent)
